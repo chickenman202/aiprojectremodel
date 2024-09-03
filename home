@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate AI Remodel Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        h1 {
+            margin-top: 20px;
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+            width: 90%;
+            max-width: 400px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        button {
+            display: inline-block;
+            margin-top: 0;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        #imageGallery {
+            display: none;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            width: 90%;
+            max-width: 800px;
+            text-align: center; /* Center the content within imageGallery */
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding-bottom: 20px; /* Add padding at the bottom of the grid */
+        }
+
+        .image-item {
+            width: 100%;
+            height: 200px; /* Set a fixed height */
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+
+        #generateAIBtn {
+            display: block; /* Change from 'none' to 'block' */
+            margin: 20px auto 0; /* Center the button horizontally */
+            padding: 12px 24px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        #generateAIBtn:hover {
+            background-color: #27ae60;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        nav {
+            background-color: #2c3e50;
+            width: 100%;
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            padding: 10px 15px;
+        }
+
+        nav ul li a:hover {
+            color: #3498db;
+        }
+
+        /* Adjust body padding to account for fixed nav */
+        body {
+            padding-top: 60px;
+        }
+
+        /* Adjust h1 margin */
+        h1 {
+            margin-top: 20px;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 40px 0 20px;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-section {
+            flex: 1;
+            margin: 0 20px;
+            min-width: 200px;
+        }
+
+        .footer-section h3 {
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .footer-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: #3498db;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #34495e;
+        }
+
+        /* Adjust body to push footer to bottom */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+            width: 100%;
+            max-width: 600px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        #imageGallery {
+            display: none;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding-bottom: 20px;
+        }
+
+        .container form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container input[type="text"],
+        .container input[type="email"],
+        .container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .container button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .container button[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#" onclick="showRegistration()">Sign Up</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h1>Real Estate AI Remodel Visualizer</h1>
+        
+        <!-- New Registration Form -->
+        <div id="registrationForm" class="container" style="display: none;">
+            <h2>Create an Account</h2>
+            <form onsubmit="registerUser(event)">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
+        </div>
+
+        <!-- New Login Form -->
+        <div id="loginForm" class="container" style="display: none;">
+            <h2>Log In</h2>
+            <form onsubmit="loginUser(event)">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Log In</button>
+            </form>
+            <p>Don't have an account? <a href="#" onclick="showRegistration()">Sign up</a></p>
+        </div>
+
+        <!-- Existing Image Upload Container -->
+        <div id="imageUploadContainer" class="container">
+            <h2>Upload Property Image</h2>
+            <p>Upload an image of the property you want to remodel:</p>
+            <input type="file" id="imageUpload" accept="image/*" onchange="previewImage(this)">
+            <div id="imagePreview" style="display: none; margin-top: 20px;">
+                <img id="preview" src="" alt="Image preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+            </div>
+            <button id="generateBtn" onclick="processImage()">Generate</button>
+        </div>
+
+        <div id="imageGallery">
+            <h2>Property Images</h2>
+            <div class="image-grid">
+                <!-- Placeholder images will be added here dynamically -->
+            </div>
+            <button id="generateAIBtn" onclick="generateWithAI()">Generate with AI</button>
+        </div>
+
+        <div id="imageModal" class="modal">
+            <span class="close">&times;</span>
+            <img class="modal-content" id="modalImage">
+        </div>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Eluya</h3>
+                <p>Eluya uses AI to help you visualize your dream home remodels.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#privacy">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@eluya.com</p>
+                <p>Phone: (123) 456-7890</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 Eluya. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('preview');
+            const previewContainer = document.getElementById('imagePreview');
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "";
+                previewContainer.style.display = 'none';
+            }
+        }
+
+        function processImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const button = document.getElementById('generateBtn');
+            
+            if (fileInput.files.length === 0) {
+                alert('Please select an image to upload.');
+                return;
+            }
+
+            // Show loading animation
+            button.innerHTML = '<span class="loader"></span>Generating...';
+            button.disabled = true;
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                // Simulate processing time (3 seconds)
+                setTimeout(() => {
+                    // Reset button after "processing"
+                    button.innerHTML = 'Generate';
+                    button.disabled = false;
+
+                    // Display the image gallery with the uploaded image
+                    displayImageGallery(e.target.result);
+
+                    console.log("Processing image:", file.name);
+                    // You can add more functionality or API calls here
+                }, 3000);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function displayImageGallery(uploadedImageSrc) {
+            const imageGallery = document.getElementById('imageGallery');
+            const imageGrid = imageGallery.querySelector('.image-grid');
+            
+            // Clear existing images
+            imageGrid.innerHTML = '';
+
+            // Add uploaded image
+            const uploadedImg = document.createElement('img');
+            uploadedImg.src = uploadedImageSrc;
+            uploadedImg.alt = 'Uploaded Property Image';
+            uploadedImg.className = 'image-item';
+            uploadedImg.onclick = function() { openModal(this.src); };
+            imageGrid.appendChild(uploadedImg);
+
+            // Add placeholder images
+            for (let i = 0; i < 5; i++) {
+                const img = document.createElement('img');
+                img.src = `https://via.placeholder.com/300x300?text=Image+${i+2}`;
+                img.alt = `Property Image ${i+2}`;
+                img.className = 'image-item';
+                img.onclick = function() { openModal(this.src); };
+                imageGrid.appendChild(img);
+            }
+
+            // Show the image gallery
+            imageGallery.style.display = 'block';
+
+            // Show the "Generate with AI" button
+            document.getElementById('generateAIBtn').style.display = 'block';
+        }
+
+        function generateWithAI() {
+            const button = document.getElementById('generateAIBtn');
+            
+            // Show loading animation
+            button.innerHTML = '<span class="loader"></span>Generating...';
+            button.disabled = true;
+
+            // Simulate AI processing time (5 seconds)
+            setTimeout(() => {
+                // Reset button after "processing"
+                button.innerHTML = 'Generate with AI';
+                button.disabled = false;
+
+                // Generate new AI images
+                displayAIGeneratedImages();
+
+                console.log("AI generation complete");
+            }, 5000);
+        }
+
+        function displayAIGeneratedImages() {
+            const imageGrid = document.querySelector('.image-grid');
+            
+            // Clear existing images
+            imageGrid.innerHTML = '';
+
+            // Add new AI-generated placeholder images
+            for (let i = 0; i < 6; i++) {
+                const img = document.createElement('img');
+                img.src = `https://via.placeholder.com/300x300?text=AI+Image+${i+1}`;
+                img.alt = `AI-Generated Image ${i+1}`;
+                img.className = 'image-item';
+                img.onclick = function() { openModal(this.src); };
+                imageGrid.appendChild(img);
+            }
+        }
+
+        // Modal functionality
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        let currentImageIndex = 0;
+        let images = [];
+
+        function openModal(imgSrc) {
+            modal.style.display = 'flex';
+            modalImg.src = imgSrc;
+            images = Array.from(document.querySelectorAll('.image-item'));
+            currentImageIndex = images.findIndex(img => img.src === imgSrc);
+        }
+
+        function changeImage(step) {
+            currentImageIndex = (currentImageIndex + step + images.length) % images.length;
+            modalImg.src = images[currentImageIndex].src;
+        }
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (modal.style.display === 'flex') {
+                if (event.key === 'ArrowLeft') {
+                    changeImage(-1);
+                } else if (event.key === 'ArrowRight') {
+                    changeImage(1);
+                } else if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+
+        function showRegistration() {
+            document.getElementById('registrationForm').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('imageUploadContainer').style.display = 'none';
+            document.getElementById('imageGallery').style.display = 'none';
+        }
+
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registrationForm').style.display = 'none';
+            document.getElementById('imageUploadContainer').style.display = 'none';
+            document.getElementById('imageGallery').style.display = 'none';
+        }
+
+        function registerUser(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords don't match!");
+                return;
+            }
+
+            // Here you would typically send this data to your backend for processing
+            console.log("Registering user:", { username, email });
+
+            // For now, we'll just simulate a successful registration
+            alert("Registration successful! Please log in.");
+            showLogin();
+        }
+
+        function loginUser(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // Here you would typically send this data to your backend for authentication
+            console.log("Logging in user:", { email });
+
+            // For now, we'll just simulate a successful login
+            alert("Login successful!");
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('imageUploadContainer').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
